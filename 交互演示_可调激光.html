@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>可调激光 — 悬浮高度交互演示</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  *{margin:0;padding:0;box-sizing:border-box}
+  :root{
+    --ink:#14202f;--ink-dim:#33414f;--ink-faint:#6a7686;
+    --glow:#16509e;--glow2:#3a5a92;--line:rgba(20,32,50,.16);
+    --panel:#f7f9fd;--panel2:#eef2f9;
+    --sans:"Noto Sans SC",system-ui,sans-serif;--mono:"JetBrains Mono",monospace;
+  }
+  html,body{height:100%;}
+  body{font-family:var(--sans);color:var(--ink);overflow:hidden;
+    background:radial-gradient(120% 90% at 50% 0%,#ffffff,#eef2f7 72%);}
+  .wrap{position:absolute;inset:0;display:grid;grid-template-columns:1.25fr 1fr;}
+
+  /* ===== stage (left) ===== */
+  .stage{position:relative;overflow:hidden;border-right:1px solid var(--line);background:linear-gradient(180deg,#f6f8fc,#eef2f7);}
+  .stage .grid{position:absolute;inset:0;background-image:
+    linear-gradient(rgba(20,32,50,.06) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(20,32,50,.06) 1px,transparent 1px);
+    background-size:54px 54px;mask-image:radial-gradient(80% 70% at 50% 60%,#000,transparent);}
+  .scene{position:absolute;left:50%;bottom:18%;transform:translateX(-50%);width:520px;}
+  .desk{position:absolute;left:-200%;right:-200%;bottom:0;height:46%;
+    background:linear-gradient(180deg,#e2e8f1 0%,#cdd6e4 100%);box-shadow:0 -1px 0 rgba(20,32,50,.10);}
+  .deskglow{position:absolute;left:50%;bottom:0;transform:translateX(-50%);width:760px;height:240px;
+    background:radial-gradient(ellipse at center,rgba(22,80,158,.20),transparent 65%);filter:blur(6px);opacity:.0;transition:opacity .3s;}
+  /* magnets */
+  .magnets{position:absolute;left:50%;bottom:18%;transform:translateX(-50%);display:flex;z-index:3;}
+  .mag{width:96px;height:60px;background:linear-gradient(180deg,#6b7180,#3d424e);border:1px solid #2b2f3a;
+    box-shadow:inset 0 2px 4px rgba(255,255,255,.22),inset 0 -3px 6px rgba(0,0,0,.4);}
+  .mag+.mag{border-left:none;}
+  /* graphite chip */
+  .chip{position:absolute;left:50%;transform:translateX(-50%);width:150px;height:13px;border-radius:2px;z-index:4;
+    background:linear-gradient(180deg,#3a3f4a,#15171d);border:1px solid #555b69;
+    box-shadow:0 8px 22px rgba(20,32,50,.28),0 0 0 1px rgba(22,80,158,.0);transition:bottom .12s linear, box-shadow .3s;}
+  .chip::before{content:"";position:absolute;inset:0;border-radius:2px;
+    background:linear-gradient(180deg,rgba(22,80,158,.0),rgba(22,80,158,.0));transition:.3s;}
+  .chip.lit{box-shadow:0 8px 22px rgba(20,32,50,.28),0 0 26px rgba(22,80,158,.45),0 0 0 1px rgba(22,80,158,.45);}
+  .chip.lit::before{background:linear-gradient(180deg,rgba(47,111,192,.42),rgba(22,80,158,.18));}
+  /* laser beam */
+  .beam{position:absolute;left:50%;transform:translateX(-50%);width:8px;z-index:5;pointer-events:none;
+    background:linear-gradient(180deg,rgba(47,111,192,0),rgba(47,111,192,.55) 30%,rgba(22,80,158,.95));
+    filter:blur(.4px);opacity:0;transition:opacity .25s;border-radius:4px;
+    box-shadow:0 0 18px 3px rgba(22,80,158,.45);}
+  .beamdot{position:absolute;left:50%;transform:translate(-50%,50%);width:34px;height:34px;border-radius:50%;z-index:6;
+    background:radial-gradient(circle,rgba(255,255,255,.95),rgba(47,111,192,.85) 38%,transparent 72%);
+    opacity:0;transition:opacity .25s;}
+  /* height ruler */
+  .ruler{position:absolute;left:calc(50% + 110px);bottom:18%;width:2px;z-index:4;
+    background:repeating-linear-gradient(180deg,rgba(20,32,50,.32) 0 2px,transparent 2px 14px);}
+  .zlabel{position:absolute;left:calc(50% + 124px);z-index:6;font-family:var(--mono);font-size:17px;color:var(--glow);
+    white-space:nowrap;transition:bottom .12s linear;}
+  .zlabel b{font-size:23px;font-weight:700;}
+  .stagecap{position:absolute;left:34px;bottom:30px;font-family:var(--mono);font-size:15px;color:var(--ink-faint);letter-spacing:.04em;z-index:7;}
+  .stagecap span{color:var(--glow);font-weight:700;}
+  .titlebar{position:absolute;left:34px;top:30px;z-index:7;}
+  .titlebar .k{font-size:16px;letter-spacing:.2em;color:var(--glow);font-weight:700;text-transform:uppercase;}
+  .titlebar .t{font-size:28px;font-weight:900;margin-top:8px;color:var(--ink);}
+  .titlebar .t em{font-style:normal;color:var(--glow);}
+
+  /* ===== panel (right) ===== */
+  .panel{padding:42px 46px;display:flex;flex-direction:column;gap:22px;overflow:hidden;background:#fff;}
+  .ph-head{display:flex;flex-direction:column;gap:6px;}
+  .ph-head .lbl{font-size:16px;letter-spacing:.16em;color:var(--ink-faint);text-transform:uppercase;font-weight:700;}
+  .ph-head h1{font-size:32px;font-weight:900;line-height:1.15;color:var(--ink);}
+
+  .control{background:linear-gradient(180deg,var(--panel),var(--panel2));border:1px solid var(--line);border-radius:16px;padding:24px 26px;}
+  .control .row{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:16px;}
+  .control .row .name{font-size:20px;font-weight:700;color:var(--ink-dim);}
+  .control .row .val{font-family:var(--mono);font-size:32px;font-weight:700;color:var(--glow);}
+  .control .row .val .u{font-size:18px;color:var(--ink-dim);font-weight:500;}
+  input[type=range]{-webkit-appearance:none;width:100%;height:6px;border-radius:3px;outline:none;
+    background:linear-gradient(90deg,var(--glow) 0%,var(--glow2) var(--pct,0%),rgba(20,32,50,.14) var(--pct,0%));}
+  input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:24px;height:24px;border-radius:50%;
+    background:#fff;border:3px solid var(--glow);cursor:pointer;box-shadow:0 2px 10px rgba(22,80,158,.4);}
+  .ticks{display:flex;justify-content:space-between;font-family:var(--mono);font-size:15px;color:var(--ink-faint);margin-top:10px;}
+  .presets{display:flex;gap:10px;margin-top:18px;}
+  .preset{flex:1;font-family:var(--mono);font-size:16px;color:var(--ink-dim);padding:10px 0;text-align:center;cursor:pointer;
+    border:1px solid var(--line);border-radius:9px;background:rgba(20,32,50,.03);transition:.15s;}
+  .preset:hover{border-color:rgba(22,80,158,.5);color:var(--ink);}
+  .preset.on{border-color:var(--glow);color:var(--glow);background:rgba(22,80,158,.10);font-weight:700;}
+  .kbd-hint{margin-top:16px;font-family:var(--mono);font-size:16px;line-height:1.5;color:var(--ink-faint);}
+  .kbd-hint b{color:var(--glow);font-weight:700;}
+  .kbd-hint.flash{color:var(--glow);}
+
+  .readouts{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;}
+  .ro{background:linear-gradient(180deg,var(--panel),var(--panel2));border:1px solid var(--line);border-radius:14px;padding:18px 18px;}
+  .ro .k{font-size:16px;color:var(--ink-faint);font-weight:500;}
+  .ro .v{font-family:var(--mono);font-size:28px;font-weight:700;margin-top:8px;line-height:1;}
+  .ro .v .u{font-size:15px;color:var(--ink-dim);font-weight:500;}
+  .ro.t .v{color:#c25a1e;} .ro.chi .v{color:var(--glow);} .ro.z .v{color:var(--glow2);}
+
+  .chartbox{flex:1;min-height:0;background:linear-gradient(180deg,var(--panel),var(--panel2));border:1px solid var(--line);border-radius:16px;padding:20px 22px 14px;display:flex;flex-direction:column;}
+  .chartbox .ct{font-size:18px;font-weight:700;color:var(--ink-dim);margin-bottom:6px;display:flex;justify-content:space-between;}
+  .chartbox .ct .leg{font-family:var(--mono);font-size:14px;color:var(--ink-faint);font-weight:400;}
+  canvas{width:100%;flex:1;min-height:0;}
+  .foot{font-family:var(--mono);font-size:14px;color:var(--ink-faint);line-height:1.6;}
+  .foot b{color:var(--ink-dim);font-weight:700;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <!-- ===== 左：可视化舞台 ===== -->
+  <div class="stage">
+    <div class="grid"></div>
+    <div class="titlebar"><div class="k">Interactive Demo</div><div class="t">可调激光 → <em>悬浮高度</em></div></div>
+    <div class="deskglow" id="deskglow"></div>
+    <div class="desk"></div>
+    <div class="beam" id="beam"></div>
+    <div class="magnets" id="magnets"></div>
+    <div class="chip" id="chip"></div>
+    <div class="beamdot" id="beamdot"></div>
+    <div class="ruler" id="ruler"></div>
+    <div class="zlabel" id="zlabel">z₀ = <b>1.39</b> mm</div>
+    <div class="stagecap">N52 田字格磁铁 · HOPG 10×10×0.3 mm · 405 nm 蓝光 <span id="capP">0 mW</span></div>
+  </div>
+
+  <!-- ===== 右：控制 + 读数 + 曲线 ===== -->
+  <div class="panel">
+    <div class="ph-head"><div class="lbl">实时演示 · 激光功率 → 悬浮高度</div><h1>激光功率调控悬浮高度</h1></div>
+
+    <div class="control">
+      <div class="row"><div class="name">激光功率 P</div><div class="val" id="pVal">0<span class="u"> mW</span></div></div>
+      <input type="range" id="pSlider" min="0" max="500" step="5" value="0">
+      <div class="ticks"><span>0</span><span>125</span><span>250</span><span>375</span><span>500 mW</span></div>
+      <div class="presets" id="presets">
+        <div class="preset" data-p="0">关闭</div>
+        <div class="preset" data-p="250">250</div>
+        <div class="preset" data-p="350">350</div>
+        <div class="preset" data-p="430">430</div>
+        <div class="preset" data-p="500">500</div>
+      </div>
+      <div class="kbd-hint" id="kbdHint">快捷键：<b>↑ / ↓</b> 调 ±10 mW（<b>PgUp/PgDn</b> ±50）· <b>1–5</b> 预设档 · <b>0</b> 关闭　|　<b>← / →</b> PPT 翻页</div>
+    </div>
+
+    <div class="readouts">
+      <div class="ro t"><div class="k">石墨片温度 T</div><div class="v"><span id="tVal">27</span><span class="u"> ℃</span></div></div>
+      <div class="ro chi"><div class="k">抗磁化率 χᵥ</div><div class="v"><span id="chiVal">−1.287</span><span class="u">×10⁻⁴</span></div></div>
+      <div class="ro z"><div class="k">悬浮高度 z₀</div><div class="v"><span id="zVal">1.39</span><span class="u"> mm</span></div></div>
+    </div>
+
+    <div class="chartbox">
+      <div class="ct"><span>χᵥ — T 幂律曲线</span><span class="leg">χᵥ = χ₀·(300/T)^α &nbsp; α=3.296</span></div>
+      <canvas id="chart"></canvas>
+    </div>
+
+    <div class="foot"><b>模型：</b>T(P) 由热平衡近似给出；χᵥ(T) 取实测幂律拟合（10mm 片 χ₀=−1.287×10⁻⁴, α=3.2956）；z₀ 由 χᵥ = −2μ₀ρg/G(z₀) 反算。数值为演示示意。</div>
+  </div>
+</div>
+
+<script>
+(function(){
+  // ---- physics model (demo) ----
+  var CHI0=-1.287e-4, ALPHA=3.2956, T0=300;
+  var Tmax=415; // K at 500 mW (≈142°C)
+  function Tof(P){ return T0 + (P/500)*(Tmax-T0); }            // K
+  function chiOf(T){ return CHI0*Math.pow(300/T, ALPHA); }      // SI
+  // z mapping: monotonic with |chi|; room-temp |chi|=1.287e-4 -> 1.39mm
+  var chiRT=Math.abs(CHI0);
+  function zOf(chi){
+    var a=Math.abs(chi);
+    // map |chi| in [chi(at 500), chiRT] -> z in [zmin, 1.39]
+    var chiMin=Math.abs(chiOf(Tmax));
+    var f=(a-chiMin)/(chiRT-chiMin);          // 0..1
+    f=Math.max(0,Math.min(1,f));
+    return 0.92 + f*(1.39-0.92);              // mm
+  }
+
+  // ---- magnets ----
+  var mw=document.getElementById('magnets');
+  for(var i=0;i<4;i++){var m=document.createElement('div');m.className='mag';mw.appendChild(m);}
+
+  var slider=document.getElementById('pSlider');
+  var chip=document.getElementById('chip'), beam=document.getElementById('beam'),
+      beamdot=document.getElementById('beamdot'), zlabel=document.getElementById('zlabel'),
+      ruler=document.getElementById('ruler'), deskglow=document.getElementById('deskglow');
+  var pVal=document.getElementById('pVal'), tVal=document.getElementById('tVal'),
+      chiVal=document.getElementById('chiVal'), zVal=document.getElementById('zVal'),
+      capP=document.getElementById('capP');
+  var presets=document.querySelectorAll('.preset');
+
+  var MAGNET_TOP_FROM_BOTTOM=0.18; // matches CSS bottom:18%
+  function render(P){
+    var T=Tof(P), chi=chiOf(T), z=zOf(chi);
+    // numbers
+    pVal.innerHTML=P+'<span class="u"> mW</span>';
+    capP.textContent=P+' mW';
+    tVal.textContent=(T-273).toFixed(0);
+    chiVal.textContent='−'+(Math.abs(chi)*1e4).toFixed(3);
+    zVal.textContent=z.toFixed(2);
+    zlabel.innerHTML='z₀ = <b>'+z.toFixed(2)+'</b> mm';
+    // slider fill
+    slider.style.setProperty('--pct',(P/500*100)+'%');
+    // visual: map z (0.92..1.39mm) to pixels above magnet top
+    var px=60 + (z-0.92)/(1.39-0.92)*150; // 60..210 px gap
+    var magH=60;
+    var bottomPct='calc('+(MAGNET_TOP_FROM_BOTTOM*100)+'% + '+(magH+px)+'px)';
+    chip.style.bottom=bottomPct;
+    zlabel.style.bottom=bottomPct;
+    ruler.style.height=(magH+px+6)+'px';
+    // laser on/off
+    var on=P>0;
+    chip.classList.toggle('lit',on);
+    beam.style.opacity=on?1:0;
+    beamdot.style.opacity=on?(0.5+P/1000):0;
+    deskglow.style.opacity=on?(0.3+P/900):0;
+    // beam from top to chip top
+    var chipTopGap = magH+px+13;
+    beam.style.bottom='calc('+(MAGNET_TOP_FROM_BOTTOM*100)+'% + '+chipTopGap+'px)';
+    beam.style.height='calc(82% - '+chipTopGap+'px)';
+    beam.style.width=(5+P/90)+'px';
+    beamdot.style.bottom='calc('+(MAGNET_TOP_FROM_BOTTOM*100)+'% + '+chipTopGap+'px)';
+    // presets active
+    presets.forEach(function(b){b.classList.toggle('on', +b.dataset.p===P);});
+    drawChart(T);
+    try{localStorage.setItem('hopg_demo_P',P);}catch(e){}
+  }
+
+  // ---- chart ----
+  var cv=document.getElementById('chart'), ctx=cv.getContext('2d');
+  function sizeCanvas(){var r=cv.getBoundingClientRect();cv.width=r.width*devicePixelRatio;cv.height=r.height*devicePixelRatio;ctx.setTransform(devicePixelRatio,0,0,devicePixelRatio,0,0);}
+  function drawChart(curT){
+    var r=cv.getBoundingClientRect(), W=r.width, H=r.height;
+    ctx.clearRect(0,0,W,H);
+    var padL=46,padR=12,padT=10,padB=26;
+    var x0=padL,x1=W-padR,y0=H-padB,y1=padT;
+    var Tlo=300,Thi=Tmax;
+    var chiLo=Math.abs(chiOf(Thi)), chiHi=Math.abs(CHI0);
+    function X(T){return x0+(T-Tlo)/(Thi-Tlo)*(x1-x0);}
+    function Y(ac){return y0+(ac-chiLo)/(chiHi-chiLo)*(y1-y0);}
+    // grid + axes
+    ctx.strokeStyle='rgba(20,32,50,.10)';ctx.lineWidth=1;ctx.fillStyle='rgba(106,118,134,.95)';
+    ctx.font='13px JetBrains Mono, monospace';ctx.textAlign='center';
+    for(var T=300;T<=415;T+=25){var xx=X(T);ctx.beginPath();ctx.moveTo(xx,y1);ctx.lineTo(xx,y0);ctx.stroke();ctx.fillText((T-273)+'°',xx,y0+16);}
+    ctx.textAlign='right';
+    for(var k=0;k<=3;k++){var ac=chiLo+(chiHi-chiLo)*k/3;var yy=Y(ac);ctx.beginPath();ctx.moveTo(x0,yy);ctx.lineTo(x1,yy);ctx.stroke();ctx.fillText('−'+(ac*1e4).toFixed(2),x0-6,yy+4);}
+    // curve
+    ctx.strokeStyle='#16509e';ctx.lineWidth=2.5;ctx.beginPath();
+    for(var T2=300;T2<=Thi;T2+=2){var ac2=Math.abs(chiOf(T2));var xx2=X(T2),yy2=Y(ac2);if(T2===300)ctx.moveTo(xx2,yy2);else ctx.lineTo(xx2,yy2);}
+    ctx.stroke();
+    // glow under curve
+    ctx.lineTo(X(Thi),y0);ctx.lineTo(X(300),y0);ctx.closePath();
+    var g=ctx.createLinearGradient(0,y1,0,y0);g.addColorStop(0,'rgba(22,80,158,.20)');g.addColorStop(1,'rgba(22,80,158,0)');ctx.fillStyle=g;ctx.fill();
+    // marker
+    var acC=Math.abs(chiOf(curT)),mx=X(curT),my=Y(acC);
+    ctx.strokeStyle='rgba(58,90,146,.55)';ctx.lineWidth=1;ctx.setLineDash([4,4]);
+    ctx.beginPath();ctx.moveTo(mx,my);ctx.lineTo(mx,y0);ctx.stroke();
+    ctx.beginPath();ctx.moveTo(x0,my);ctx.lineTo(mx,my);ctx.stroke();ctx.setLineDash([]);
+    ctx.fillStyle='#3a5a92';ctx.beginPath();ctx.arc(mx,my,6,0,7);ctx.fill();
+    ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(mx,my,2.4,0,7);ctx.fill();
+  }
+
+  slider.addEventListener('input',function(){render(+slider.value);});
+  presets.forEach(function(b){b.addEventListener('click',function(){slider.value=b.dataset.p;render(+b.dataset.p);});});
+  window.addEventListener('resize',function(){sizeCanvas();render(+slider.value);});
+
+  // ===== 键盘快捷键 =====
+  // 调功率用 ↑/↓（PPT 翻页只用 ←/→ /空格/PageUp-Down，互不冲突）；
+  // 焦点在演示窗口内才会触发，翻页键统一转发给外层 PPT（见下方）。
+  var PRESET_KEYS={'1':0,'2':250,'3':350,'4':430,'5':500};
+  function setP(v){v=Math.max(0,Math.min(500,Math.round(v/10)*10));slider.value=v;render(v);
+    var h=document.getElementById('kbdHint');h.classList.add('flash');setTimeout(function(){h.classList.remove('flash');},220);}
+  window.addEventListener('keydown',function(e){
+    var k=e.key, cur=+slider.value;
+    if(k in PRESET_KEYS){ setP(PRESET_KEYS[k]); e.preventDefault(); e.stopPropagation(); }
+    else if(k==='0'){ setP(0); e.preventDefault(); e.stopPropagation(); }
+    else if(k==='ArrowUp'){ setP(cur+10); e.preventDefault(); e.stopPropagation(); }
+    else if(k==='ArrowDown'){ setP(cur-10); e.preventDefault(); e.stopPropagation(); }
+    else if(k==='PageUp'){ setP(cur+50); e.preventDefault(); e.stopPropagation(); }   // 大步进
+    else if(k==='PageDown'){ setP(cur-50); e.preventDefault(); e.stopPropagation(); }
+  });
+
+  // ===== 翻页键转发：点了演示器后焦点在 iframe 内，方向键传不回外层 PPT，
+  //       这里把翻页键转发给父级 deck-stage，保证随时能翻页 =====
+  function parentDeck(){
+    try{ return window.parent && window.parent!==window ? window.parent.document.querySelector('deck-stage') : null; }
+    catch(err){ return null; }            // 跨域则放弃（本项目同源，正常可用）
+  }
+  window.addEventListener('keydown',function(e){
+    var d=parentDeck(); if(!d) return;
+    var k=e.key;
+    if(k==='ArrowRight'||k===' '||k==='Spacebar'){ d.next(); e.preventDefault(); }
+    else if(k==='ArrowLeft'){ d.prev(); e.preventDefault(); }
+    else if(k==='Home'){ d.goTo(0); e.preventDefault(); }
+    else if(k==='End'){ d.goTo(d.length-1); e.preventDefault(); }
+  });
+
+  // init (restore)
+  var saved=0;try{var s=localStorage.getItem('hopg_demo_P');if(s!==null)saved=Math.max(0,Math.min(500,+s));}catch(e){}
+  slider.value=saved;
+  function boot(){sizeCanvas();render(saved);}
+  if(document.fonts&&document.fonts.ready)document.fonts.ready.then(boot);else boot();
+  setTimeout(boot,300);
+})();
+</script>
+</body>
+</html>
