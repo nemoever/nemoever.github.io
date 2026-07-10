@@ -1,0 +1,305 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>超导实验资料导航</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --bg: #f5f7fa;
+      --panel: #ffffff;
+      --text: #17202a;
+      --muted: #667085;
+      --line: #d9dee7;
+      --accent: #1565c0;
+      --accent-2: #0f766e;
+      --shadow: 0 8px 24px rgba(20, 32, 45, 0.08);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.5;
+    }
+
+    header {
+      background: var(--panel);
+      border-bottom: 1px solid var(--line);
+    }
+
+    .wrap {
+      width: min(1120px, calc(100% - 32px));
+      margin: 0 auto;
+    }
+
+    .top {
+      padding: 28px 0 22px;
+    }
+
+    h1 {
+      margin: 0 0 8px;
+      font-size: clamp(26px, 5vw, 40px);
+      letter-spacing: 0;
+    }
+
+    .intro {
+      margin: 0;
+      color: var(--muted);
+      font-size: 16px;
+    }
+
+    main {
+      padding: 24px 0 42px;
+    }
+
+    section {
+      margin: 0 0 28px;
+    }
+
+    h2 {
+      margin: 0 0 14px;
+      font-size: 20px;
+      letter-spacing: 0;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 14px;
+    }
+
+    .card {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+
+    .card-body {
+      padding: 14px;
+    }
+
+    .card h3 {
+      margin: 0 0 8px;
+      font-size: 16px;
+      letter-spacing: 0;
+    }
+
+    .card p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 14px;
+      overflow-wrap: anywhere;
+    }
+
+    img,
+    video,
+    iframe {
+      display: block;
+      width: 100%;
+      background: #eef1f5;
+    }
+
+    img,
+    video {
+      aspect-ratio: 16 / 9;
+      object-fit: contain;
+    }
+
+    iframe {
+      height: min(72vh, 760px);
+      border: 0;
+    }
+
+    .links {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 12px;
+    }
+
+    .link-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      min-height: 72px;
+      padding: 14px;
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      text-decoration: none;
+      color: var(--text);
+      box-shadow: var(--shadow);
+    }
+
+    .link-row strong {
+      display: block;
+      margin-bottom: 4px;
+      font-size: 16px;
+    }
+
+    .link-row span {
+      color: var(--muted);
+      font-size: 13px;
+      overflow-wrap: anywhere;
+    }
+
+    .tag {
+      flex: 0 0 auto;
+      padding: 5px 9px;
+      border-radius: 999px;
+      background: #e8f2ff;
+      color: var(--accent);
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 40px;
+      margin-top: 12px;
+      padding: 0 14px;
+      border-radius: 8px;
+      background: var(--accent);
+      color: white;
+      text-decoration: none;
+      font-weight: 600;
+    }
+
+    .button.secondary {
+      background: var(--accent-2);
+    }
+
+    @media (max-width: 640px) {
+      .wrap {
+        width: min(100% - 24px, 1120px);
+      }
+
+      .top {
+        padding: 22px 0 18px;
+      }
+
+      main {
+        padding-top: 18px;
+      }
+
+      .link-row {
+        align-items: flex-start;
+        flex-direction: column;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="wrap top">
+      <h1>超导实验资料导航</h1>
+      <p class="intro">扫码后可直接查看实验图片、操作动图、演示视频、研究报告、交互页面和数据表格。</p>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <section>
+      <h2>演示视频</h2>
+      <div class="grid">
+        <article class="card">
+          <video controls preload="metadata" src="./超导_raw.mp4"></video>
+          <div class="card-body">
+            <h3>超导 Raw 视频</h3>
+            <p>文件：超导_raw.mp4</p>
+          </div>
+        </article>
+        <article class="card">
+          <video controls preload="metadata" src="./讲解 Raw.mp4"></video>
+          <div class="card-body">
+            <h3>讲解 Raw 视频</h3>
+            <p>文件：讲解 Raw.mp4</p>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <section>
+      <h2>操作动图</h2>
+      <div class="grid">
+        <article class="card">
+          <img src="./24_operation_demo.gif" alt="操作演示动图">
+          <div class="card-body">
+            <h3>操作演示</h3>
+            <p>文件：24_operation_demo.gif</p>
+          </div>
+        </article>
+        <article class="card">
+          <img src="./converted_20260710184545.gif" alt="转换后的操作动图">
+          <div class="card-body">
+            <h3>转换动图</h3>
+            <p>文件：converted_20260710184545.gif</p>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <section>
+      <h2>实验图片</h2>
+      <div class="grid">
+        <article class="card">
+          <img src="./02_experiment_5mm_power_series.jpg" alt="5mm 功率序列实验图片">
+          <div class="card-body">
+            <h3>5mm 功率序列</h3>
+            <p>文件：02_experiment_5mm_power_series.jpg</p>
+          </div>
+        </article>
+        <article class="card">
+          <img src="./03_experiment_10mm_power_series.jpg" alt="10mm 功率序列实验图片">
+          <div class="card-body">
+            <h3>10mm 功率序列</h3>
+            <p>文件：03_experiment_10mm_power_series.jpg</p>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <section>
+      <h2>研究报告</h2>
+      <article class="card">
+        <iframe src="./研究报告.pdf" title="研究报告 PDF 预览"></iframe>
+        <div class="card-body">
+          <h3>研究报告 PDF</h3>
+          <p>如果手机浏览器无法内嵌预览，可点击下面按钮打开或下载。</p>
+          <a class="button" href="./研究报告.pdf">打开研究报告</a>
+        </div>
+      </article>
+    </section>
+
+    <section>
+      <h2>交互页面和数据</h2>
+      <div class="links">
+        <a class="link-row" href="./交互演示_可调激光.html">
+          <div>
+            <strong>交互演示：可调激光</strong>
+            <span>交互演示_可调激光.html</span>
+          </div>
+          <span class="tag">HTML</span>
+        </a>
+        <a class="link-row" href="./新数据.xlsx">
+          <div>
+            <strong>实验数据表格</strong>
+            <span>新数据.xlsx</span>
+          </div>
+          <span class="tag">XLSX</span>
+        </a>
+      </div>
+    </section>
+  </main>
+</body>
+</html>
